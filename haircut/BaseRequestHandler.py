@@ -15,7 +15,8 @@ from tornado.web import RequestHandler
 class BaseRequestHandler(RequestHandler, ABC):
 
     def options(self, *args, **kwargs):
-        self.set_default_headers()
+
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, PATCH, DELETE, HEAD')
 
     def prepare(self): pass
 
@@ -43,8 +44,9 @@ class BaseRequestHandler(RequestHandler, ABC):
         during error handling.
         """
         self.set_header('Access-Control-Allow-Origin', '*')
-        self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, PATCH, DELETE, HEAD')
-        self.set_header('Access-Control-Max-Age', 1000)
-        self.set_header('Access-Control-Allow-Headers', '*')
         self.set_header('Content-type', 'application/json')
-
+        self.set_header('Access-Control-Allow-Credentials', True)
+        self.set_header('Access-Control-Allow-Credentials', True)
+        self.set_header('Access-Control-Allow-Headers', '*')
+        self.set_header('Access-Control-Max-Age', 1000)
+        self.set_header('Access-Control-Allow-Credentials', True)
