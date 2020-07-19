@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/js/axios@0.19.2.js"></script>
+    <script src="../static/js/instanceAxios.js"></script>
+</head>
+<body>
+
+</body>
+
+
+<script>
+    /**   支持多种请求方式
+     axios(config)
+     axios.request(config)
+     axios.get(url,[config])
+     axios.delete(url,[config])
+     axios.head(url,[config])
+     axios.post(url,data,[config])
+     axios.put(url,data,[config])
+     axios.patch(url,data,[config])
+     多个请求
+     axios.all()
+     axios 全局配制b
+     baseUrl配制
+     axios
+
+     **/
+
+    // 基本使用
+    // axios({
+    //     url: "http://123.207.32.32:8000/home/multidata",
+    //     method:"GET",
+    //     headers: {
+    //         "Access-Control-Allow-Origin": '*'
+    //     },
+    //     params: {
+    //         callback:"jsona"
+    //     }
+    // }).then(res => {
+    //     console.log(res);
+    // })
+    //
+    // axios.all([
+    //     axios.get("http://123.207.32.32:8000/home/data",{
+    //         params:{
+    //             type: "sell",
+    //             page:5
+    //         }}),
+    //     axios.get("http://123.207.32.32:8000/home/data", {
+    //         params:{
+    //             type:"sell",
+    //             page:3
+    //         }
+    //     },
+    // ),
+    //     axios.get("http://123.207.32.32:8000/category"),
+    // ]).then(result => {
+    //     console.log(result);
+    // })
+    // https://www.kancloud.cn/yunye/axios/234845
+
+    // axios.defaults.timeout = 5
+    // axios.defaults.baseURL = 5
+    // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+    // // axios.defaults.headers.common['Authorization'] = AUTH_TOKEN;
+
+
+    /**
+     * 实例化使用  axios 默认发送json
+     * **/
+
+    // let petApp = axios.create(
+    //     {
+    //         baseURL: "https://www.baidu.com",
+    //         timeout: 10000,
+    //     }
+    // )
+    //
+    // let hairCutApp = axios.create({
+    //     baseURL: 'http://192.168.32.1/',
+    //     timeout: 10000,
+    //     transformRequest: [function (data) {
+    //         // 对 data 进行任意转换处理
+    //         let str = '';
+    //         for (let key in data) {
+    //             str += encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) + '&'
+    //         }
+    //         return str.slice(0, str.length - 1);
+    //     }]
+    //
+    // })
+    //
+    //
+    var data = {
+        "username": "ywuitxeeq",
+        "password": '123456y1',
+        "new_password": "123456y2",
+        "re_password": "123456y1",
+        "email": "649865787@qq.com",
+        "phone": "13996052499",
+        "question": '你好吗',
+        "answer": "我很好",
+    }
+    //
+    // hairCutApp.post("account/login", data, {
+    //     headers: {
+    //         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+    //     }
+    // }).then(res => {
+    //
+    //     if (res.data.status == 1000){
+    //          console.log(res);
+    //          hairCutApp.defaults.headers.common['Authorization'] = res.data.token;
+    //     }
+    //
+    //
+    //
+    // })
+    // setTimeout(function () {
+    //     hairCutApp.post("account/register", data, {
+    //     headers: {
+    //         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+    //     }
+    // }).then(res => {
+    //
+    //     if (res.data.status == 1000){
+    //          console.log(res);
+    //          hairCutApp.defaults.headers.common['Authorization'] = res.data.token;
+    //     }
+    //
+    //
+    //
+    // })
+    // }, 5000)
+
+    /**封装自己的axios**/
+    let hairCutApp = newAxios({
+            timeout: 10000,
+            baseURL: "http://192.168.32.1/",
+            headers : {
+                common: {Authorization: "Authorization"},
+                // post: {'Content-Type': 'application/x-www-form-urlencoded'}
+                // post: {'Content-Type': 'application/json;'}
+            }
+        })
+
+    hairCutApp.post("account/login", data, {
+       transformRequest: hairCutApp.transformRequest,
+
+    },res=> {
+        console.log(res);
+        if (res.data.status === 1000){
+
+             hairCutApp.instance.defaults.headers.common['Authorization'] = res.data.token;
+        }
+
+    })
+
+
+
+    // setTimeout(function () {
+    //     hairCutApp.post("account/login", data, {
+    //         transformRequest: hairCutApp.transformRequest,
+    //
+    // }, res => {
+    //       console.log(res);
+    //     if (res.data.status == 1000){
+    //          console.log(res);
+    //          hairCutApp.instance.defaults.headers.common['Authorization'] = res.data.token;
+    //     }
+    //
+    //
+    //
+    // })
+    // }, 5000)
+
+
+</script>
+
+
+</html>

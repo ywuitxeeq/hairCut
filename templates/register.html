@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+      <script src="http://127.0.0.1:8080/static/js/vue@2.5.16.js"></script>
+<!--    <script src="{{ static_url('js/vue@2.5.16.js')}}"></script>-->
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+ <div id="app" v-cloak>
+        {{ da }}
+        aaa
+    </div>
+</body>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            da: "注册"
+        },
+        methods: {
+
+        }
+    })
+</script>
+</html>
