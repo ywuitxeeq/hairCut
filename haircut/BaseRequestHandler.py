@@ -45,7 +45,7 @@ class BaseRequestHandler(RequestHandler, ABC):
         referer = self.request.headers.get("Origin", '')
         allow_headers = 'Origin, X-Requested-With, content-Type, Accept, Authorization, Referer, User-Agent, Host'
         self.set_header('Access-Control-Allow-Origin', referer)
-        self.set_header('Content-type', 'application/json')
+        self.set_header('Content-type', 'application/json;charset=utf8')
         self.set_header('Access-Control-Allow-Credentials', "true")
         self.set_header(
             'Access-Control-Allow-Headers', allow_headers)

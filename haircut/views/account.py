@@ -66,6 +66,19 @@ class AccountHandler(BaseRequestHandler, metaclass=ABCMeta):
             return self.write("404: Not Found")
         return await getattr(obj, request_method)(self)
 
+    def is_ajax(self):
+        """
+        是否是第一次访问
+        真 第一次访问
+        :return:
+        """
+        res = self.get_query_argument("async", "false")
+        if res != 'true':
+            self.set_header('Content-Type', 'text/html; charset=utf-8')
+            return True
+        else:
+            return False
+
 
 class Login(object):
     """
@@ -73,7 +86,9 @@ class Login(object):
     """
     async def get(self, obj):
 
-        return obj.finish(await async_open(obj.get_template_path(), 'login.html'))
+        if obj.is_ajax():
+            return obj.finish(await async_open(obj.get_template_path(), 'axios.html'))
+        return obj.write({"status": 1000})
 
     async def post(self, obj):
         if obj.auth:
@@ -105,7 +120,9 @@ class Register(object):
     注册会员
     """
     async def get(self, obj):
-        return obj.finish(await async_open(obj.get_template_path(), 'register.html'))
+        if obj.is_ajax():
+            return obj.finish(await async_open(obj.get_template_path(), 'register.html'))
+        return obj.write({"status": 1000})
 
     async def post(self, obj):
         if obj.auth:
@@ -162,7 +179,11 @@ class Modify(object):
     修改密码
     """
     async def get(self, obj):
-        return obj.finish(await async_open(obj.get_template_path(), 'modify.html'))
+
+        if obj.is_ajax():
+            return obj.finish(await async_open(obj.get_template_path(), 'modify.html'))
+        else:
+            return obj.write({"status": 1000})
 
     async def post(self, obj):
         if not obj.auth:
@@ -210,6 +231,8 @@ class RetrievePassword(object):
     """找回密码"""
 
     async def get(self, obj):
+        if obj.is_ajax():
+            return obj.finish(await async_open(obj.get_template_path(), 'modify.html'))
         return obj.write('ok')
 
     async def post(self, obj):
