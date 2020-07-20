@@ -20,16 +20,16 @@ from settings.config import TOKEN_EXPIRE_TIME
 
 class AccountHandler(BaseRequestHandler, metaclass=ABCMeta):
 
-    STRING_DICT = {
-        "@hairCutBaseTitle": "",
-        "@hairCutBaseUrl": "http://192.168.32.1",
-        "@username": ''
-    }
-
     def __init__(self, *args, **kwargs):
         super(AccountHandler, self).__init__(*args, **kwargs)
         self.user = None
         self.auth = None
+        self.string_dict = {
+            "@hairCutBaseTitle": "",
+            "@hairCutBaseUrl": "http://192.168.32.1",
+            "@username": '',
+            "@haircut": 'haircut',
+        }
 
     async def prepare(self):
         head_auth = self.request.headers.get("Authorization")
@@ -44,7 +44,9 @@ class AccountHandler(BaseRequestHandler, metaclass=ABCMeta):
         res = token_class.decode_token(auth, interval=6)
         if res['ret'] == 0:
             self.user = res['data']
-            self.STRING_DICT['@username'] = self.user['username']
+            if self.user['role'] == 1:
+                self.string_dict['@haircut'] = 'haircut/admin'
+            self.string_dict['@username'] = self.user['username']
             self.auth = True
 
     async def get(self, method=None, **kwargs):
@@ -109,11 +111,13 @@ class Login(object):
 
     async def get(self, obj):
         if obj.auth:
+            if obj.user['role'] == 1:
+                return obj.redirect(obj.reverse_url('admin', 'index'))
             return obj.redirect("/haircut/index")
         if obj.is_ajax():
-            result = await async_open(obj.get_template_path(), 'base.html')
-            obj.STRING_DICT['@hairCutBaseTitle'] = "登陆"
-            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
+            result = await async_open(obj.get_template_path(), 'account.html')
+            obj.string_dict['@hairCutBaseTitle'] = "登陆"
+            return obj.finish(obj.replace_string(result, obj.string_dict))
         return obj.write({"status": 1000})
 
     async def post(self, obj):
@@ -121,7 +125,7 @@ class Login(object):
             return obj.write({"status": 1006, "msg": "已经登陆"})
         username = obj.get_body_argument("username", None, strip=True)
         password = obj.get_body_argument("password", None, strip=True)
-        query_sql = "select username, phone, email from haircut_user where username=%s and password=%s limit 0, 1"
+        query_sql = "select username, phone, email, role from haircut_user where username=%s and password=%s limit 0, 1"
         if not all((username, password)):
             data = {
                 "status": 1001,
@@ -130,13 +134,18 @@ class Login(object):
             return obj.write(data)
         result = await TorMysqlHelp.query_one_execute(query_sql, [username, SecretPwd.encode(password)], to_dict=True)
         if result:
+            if result['role'] == 1:
+                href = obj.reverse_url('admin', 'index').lstrip('/')
+            else:
+                href = "haircut/index"
             token = token_class.create_token(result, interval=6, expire_time=TOKEN_EXPIRE_TIME)
             data = {
                 "status": 1000,
                 "msg": "登陆成功",
                 "username": username,
                 "token": token,
-                "expire": TOKEN_EXPIRE_TIME
+                "expire": TOKEN_EXPIRE_TIME,
+                "href": href
             }
             return obj.write(data)
         return obj.write({"status": 1003, "errorMsg": "账号或密码错误"})
@@ -149,11 +158,13 @@ class Register(object):
 
     async def get(self, obj):
         if obj.auth:
+            if obj.user['role'] == 1:
+                return obj.redirect(obj.reverse_url('admin', 'index'))
             return obj.redirect("/haircut/index")
         if obj.is_ajax():
-            result = await async_open(obj.get_template_path(), 'base.html')
-            obj.STRING_DICT['@hairCutBaseTitle'] = "注册"
-            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
+            result = await async_open(obj.get_template_path(), 'account.html')
+            obj.string_dict['@hairCutBaseTitle'] = "注册"
+            return obj.finish(obj.replace_string(result, obj.string_dict))
         return obj.write({"status": 1000})
 
     async def post(self, obj):
@@ -217,9 +228,9 @@ class Modify(object):
             return obj.redirect("/account/login")
 
         if obj.is_ajax():
-            result = await async_open(obj.get_template_path(), 'base.html')
-            obj.STRING_DICT['@hairCutBaseTitle'] = "修改密码"
-            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
+            result = await async_open(obj.get_template_path(), 'account.html')
+            obj.string_dict['@hairCutBaseTitle'] = "修改密码"
+            return obj.finish(obj.replace_string(result, obj.string_dict))
 
         return obj.write({"status": 1000})
 
@@ -274,9 +285,9 @@ class RetrievePassword(object):
 
     async def get(self, obj):
         if obj.is_ajax():
-            result = await async_open(obj.get_template_path(), 'base.html')
-            obj.STRING_DICT['@hairCutBaseTitle'] = "找回密码"
-            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
+            result = await async_open(obj.get_template_path(), 'account.html')
+            obj.string_dict['@hairCutBaseTitle'] = "找回密码"
+            return obj.finish(obj.replace_string(result, obj.string_dict))
         return obj.write('ok')
 
     async def post(self, obj):

@@ -271,11 +271,11 @@ window.onload = function () {
                                 setCookie("authorization", data.data.token, data.data['expire'] * 60)
                                 app.username = data.data.username
                                 setTimeout(function () {
-                                    window.location = baseURL + 'haircut/index'
+                                    window.location = baseURL + data.data.href
                                 }, 500)
                             } else if (data.data.status == 1006) {
                                 setTimeout(function () {
-                                    window.location = baseURL + 'haircut/index'
+                                    window.location = baseURL + data.data.href
                                 }, 500)
                             } else {
                                 this.nameError = data.data['errorMsg']
