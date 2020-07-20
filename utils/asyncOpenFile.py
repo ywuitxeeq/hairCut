@@ -11,8 +11,8 @@ import aiofiles
 import os
 
 
-async def async_open(template_path, filename):
-    async with aiofiles.open(os.path.join(template_path, filename), mode='r', encoding="utf8") as f:
+async def async_open(template_path, filename, *args):
+    async with aiofiles.open(os.path.join(template_path, *args, filename), mode='r', encoding="utf8") as f:
         contents = await f.read()
     return contents
 
