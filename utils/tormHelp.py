@@ -53,7 +53,11 @@ class TorMysqlHelp(object):
         cursor = kwargs['__cursor__']
         if not sql.strip().lower().startswith('select'):
             return None
-        await cursor.execute(sql, args)
+        try:
+            await cursor.execute(sql, args)
+        except:
+            import traceback
+            logging.error(f"{sql} execute query all error {traceback.format_exc()}")
         return cursor.fetchall()
 
     @staticmethod
@@ -69,7 +73,11 @@ class TorMysqlHelp(object):
         cursor = kwargs['__cursor__']
         if not sql.strip().lower().startswith('select'):
             return None
-        await cursor.execute(sql, args)
+        try:
+            await cursor.execute(sql, args)
+        except:
+            import traceback
+            logging.error(f"{sql} execute query one error {traceback.format_exc()}")
         return cursor.fetchone()
 
     @staticmethod
@@ -87,8 +95,10 @@ class TorMysqlHelp(object):
         try:
             await cursor.execute(sql, args)
         except:
+            import traceback
+            logging.error(f"{sql} execute error {traceback.format_exc()}")
             await conn.rollback()
-            logging.error(f"{sql} execute error")
+
             return
         else:
             await conn.commit()
@@ -113,7 +123,8 @@ class TorMysqlHelp(object):
             await cursor.executemany(sql, args)
         except:
             await conn.rollback()
-            logging.error(f"{sql} executemany error")
+            import traceback
+            logging.error(f"{sql} executemany error {traceback.format_exc()}", )
             return
         else:
             await conn.commit()

@@ -3,7 +3,7 @@ const newAxios = (baseConfig) => {
      * baseConfig = {
             timeout: 10000,
             baseURL: "http://192.168.32.1/",
-            withCredentials: true
+            withCredentials: true,
             headers : {
                 common: {Authorization: "Authorization"},
                 post: {'Content-Type': 'application/x-www-form-urlencoded'}

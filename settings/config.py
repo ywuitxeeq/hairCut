@@ -18,11 +18,11 @@ OPTIONS = {
 }
 
 SETTINGS = {
-    # "debug" : True, #可以用以下四个方法分别设置
-    'debug': False,
-    # 'autoreload': False,  # 自动重启
-    # 'complited_template_cache': False,  # 取消缓存编译的模板
-    # 'static_hash_cache': False,  # 取消hash 缓存
+    # "debug": True, #可以用以下四个方法分别设置
+    # 'debug': False,
+    'autoreload': False,  # 自动重启
+    'complited_template_cache': False,  # 取消缓存编译的模板
+    'static_hash_cache': False,  # 取消hash 缓存
     # 'server_traceback':False, # 取消提供跟踪信息 用得少
 
     'static_path': path.join(BASE_PATH, 'static'),
@@ -55,3 +55,6 @@ RECV_EMAIL_CONFIG = {
     "pwd": 'TLMKIZONEAZTONST',
     "host": "imap.126.com"
 }
+
+
+TOKEN_EXPIRE_TIME = 30

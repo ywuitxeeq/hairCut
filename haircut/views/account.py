@@ -15,9 +15,16 @@ from utils.tormHelp import TorMysqlHelp
 from utils.CheckEmail import check_email
 from haircut.BaseRequestHandler import BaseRequestHandler
 from utils.jwtToken import token_class
+from settings.config import TOKEN_EXPIRE_TIME
 
 
 class AccountHandler(BaseRequestHandler, metaclass=ABCMeta):
+
+    STRING_DICT = {
+        "@hairCutBaseTitle": "",
+        "@hairCutBaseUrl": "http://192.168.32.1",
+        "@username": ''
+    }
 
     def __init__(self, *args, **kwargs):
         super(AccountHandler, self).__init__(*args, **kwargs)
@@ -25,12 +32,20 @@ class AccountHandler(BaseRequestHandler, metaclass=ABCMeta):
         self.auth = None
 
     async def prepare(self):
-        authorization = self.request.headers.get("Authorization", '')
-        if authorization:
-            res = token_class.decode_token(authorization, interval=6)
-            if res['ret'] == 0:
-                self.user = res['data']
-                self.auth = True
+        head_auth = self.request.headers.get("Authorization")
+        cookie_auth = self.get_cookie("authorization")
+        if head_auth:
+            auth = head_auth
+        elif cookie_auth:
+            from urllib.parse import unquote
+            auth = unquote(cookie_auth)
+        else:
+            auth = ''
+        res = token_class.decode_token(auth, interval=6)
+        if res['ret'] == 0:
+            self.user = res['data']
+            self.STRING_DICT['@username'] = self.user['username']
+            self.auth = True
 
     async def get(self, method=None, **kwargs):
 
@@ -66,6 +81,13 @@ class AccountHandler(BaseRequestHandler, metaclass=ABCMeta):
             return self.write("404: Not Found")
         return await getattr(obj, request_method)(self)
 
+    @staticmethod
+    def replace_string(string: str, string_dict: dict):
+
+        for k, v in string_dict.items():
+            string = string.replace(k, v)
+        return string
+
     def is_ajax(self):
         """
         是否是第一次访问
@@ -84,10 +106,14 @@ class Login(object):
     """
     登陆
     """
-    async def get(self, obj):
 
+    async def get(self, obj):
+        if obj.auth:
+            return obj.redirect("/haircut/index")
         if obj.is_ajax():
-            return obj.finish(await async_open(obj.get_template_path(), 'axios.html'))
+            result = await async_open(obj.get_template_path(), 'base.html')
+            obj.STRING_DICT['@hairCutBaseTitle'] = "登陆"
+            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
         return obj.write({"status": 1000})
 
     async def post(self, obj):
@@ -104,24 +130,30 @@ class Login(object):
             return obj.write(data)
         result = await TorMysqlHelp.query_one_execute(query_sql, [username, SecretPwd.encode(password)], to_dict=True)
         if result:
-            token = token_class.create_token(result, interval=6, expire_time=30)
+            token = token_class.create_token(result, interval=6, expire_time=TOKEN_EXPIRE_TIME)
             data = {
                 "status": 1000,
                 "msg": "登陆成功",
+                "username": username,
                 "token": token,
-                "expire": 30
+                "expire": TOKEN_EXPIRE_TIME
             }
             return obj.write(data)
-        return obj.write({"status": 1000, "msg": "登陆失败"})
+        return obj.write({"status": 1003, "errorMsg": "账号或密码错误"})
 
 
 class Register(object):
     """
     注册会员
     """
+
     async def get(self, obj):
+        if obj.auth:
+            return obj.redirect("/haircut/index")
         if obj.is_ajax():
-            return obj.finish(await async_open(obj.get_template_path(), 'register.html'))
+            result = await async_open(obj.get_template_path(), 'base.html')
+            obj.STRING_DICT['@hairCutBaseTitle'] = "注册"
+            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
         return obj.write({"status": 1000})
 
     async def post(self, obj):
@@ -178,18 +210,23 @@ class Modify(object):
     """
     修改密码
     """
+
     async def get(self, obj):
 
+        if not obj.auth:
+            return obj.redirect("/account/login")
+
         if obj.is_ajax():
-            return obj.finish(await async_open(obj.get_template_path(), 'modify.html'))
-        else:
-            return obj.write({"status": 1000})
+            result = await async_open(obj.get_template_path(), 'base.html')
+            obj.STRING_DICT['@hairCutBaseTitle'] = "修改密码"
+            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
+
+        return obj.write({"status": 1000})
 
     async def post(self, obj):
         if not obj.auth:
             return obj.write({"status": 1006, "errorMsg": "请先登陆"})
-
-        username = obj.get_body_argument("username", None, strip=True)
+        username = obj.user['username']
         password = obj.get_body_argument("password", None, strip=True)
         new_password = obj.get_body_argument("new_password", None, strip=True)
         re_password = obj.get_body_argument("re_password", None, strip=True)
@@ -199,20 +236,25 @@ class Modify(object):
             return obj.write({"status": 1001, "errorMsg": "两次密码不一致"})
         if not password or password == new_password:
             return obj.write({"status": 1001, "errorMsg": "密码不能为空或与原来的一致"})
+
+        if len(new_password) < 6:
+            return obj.write({"status": 1001, "errorMsg": "密码长度太短"})
+        elif new_password.isdecimal():
+            return obj.write({"status": 1002, "errorMsg": "密码为纯数字"})
         sql = "select id, username from haircut_user where username=%s and password=%s"
         result = await TorMysqlHelp.query_one_execute(sql, [username, SecretPwd.encode(password)], to_dict=True)
         if not result:
-            return obj.write({"status": 1001, "errorMsg": "账号或密码错误"})
+            return obj.write({"status": 1004, "errorMsg": "密码错误"})
         com_sql = f"update haircut_user set password=%s where id={result['id']}"
         args = [SecretPwd.encode(new_password)]
         if email:
             if not check_email(email):
-                return obj.write({"status": 1001, "errorMsg": "邮箱错误"})
+                return obj.write({"status": 1005, "errorMsg": "邮箱错误"})
             com_sql = com_sql.replace("where", ", email=%s where")
             args.append(email)
         if phone:
             if not phone.isdecimal() or len(phone) != 11:
-                return obj.write({"status": 1001, "errorMsg": "手机号错误"})
+                return obj.write({"status": 1006, "errorMsg": "手机号错误"})
             com_sql = com_sql.replace("where", ", phone=%s where")
             args.append(phone)
 
@@ -232,7 +274,9 @@ class RetrievePassword(object):
 
     async def get(self, obj):
         if obj.is_ajax():
-            return obj.finish(await async_open(obj.get_template_path(), 'modify.html'))
+            result = await async_open(obj.get_template_path(), 'base.html')
+            obj.STRING_DICT['@hairCutBaseTitle'] = "找回密码"
+            return obj.finish(obj.replace_string(result, obj.STRING_DICT))
         return obj.write('ok')
 
     async def post(self, obj):
@@ -250,7 +294,7 @@ class RetrievePassword(object):
         if not phone or len(phone) != 11:
             return obj.write({"status": 1001, "msg": "手机号错误"})
         result = await TorMysqlHelp.query_one_execute(
-            "select id, question, answer, email from haircut_user where username=%s and phone=%s",
+            "select id, question, answer, email, find_pwd_time from haircut_user where username=%s and phone=%s",
             [username, phone], to_dict=True)
 
         if not result:
@@ -290,9 +334,16 @@ class RetrievePassword(object):
                     </div>
                     """
                 ]
+                import datetime
+                if result['find_pwd_time']:
+                    if datetime.datetime.now() - result['find_pwd_time'] < datetime.timedelta(minutes=5):
+                        return obj.write({"status": 1000, 'msg': "邮件已发送到你邮箱请查收"})
                 send_email(to=[email], subject="密码找回", contents=contents)
                 del send_email
-                return obj.write({"status": 1001, 'msg': "邮件已发送请查收"})
+                sql = f"update haircut_user set find_pwd_time=%s where id={result['id']}"
+
+                await TorMysqlHelp.commit_one_execute(sql, [datetime.datetime.now()])
+                return obj.write({"status": 1000, 'msg': "邮件已发送到你邮箱请查收"})
 
         return obj.write({"status": 1001, 'msg': "信息不完整"})
 
@@ -306,8 +357,8 @@ async def active_token(obj):
     token = obj.get_argument('token', '')
     result = token_class.decode_token(token, interval=6)
     if result['ret'] == 0:
-        token = token_class.create_token(result['data'], interval=6, expire_time=30)
-        return obj.write({"status": 1000, 'token': token})
+        token = token_class.create_token(result['data'], interval=6, expire_time=TOKEN_EXPIRE_TIME)
+        return obj.write({"status": 1000, 'token': token, "expire": TOKEN_EXPIRE_TIME})
     else:
         return obj.write({"status": 1001, 'errorMsg': result['msg']})
 
