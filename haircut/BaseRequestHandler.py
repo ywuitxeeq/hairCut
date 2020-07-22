@@ -11,28 +11,48 @@ from abc import ABC
 
 from tornado.web import RequestHandler
 
+from utils.jwtToken import token_class
+
 
 class BaseRequestHandler(RequestHandler, ABC):
+
+    def __init__(self, *args, **kwargs):
+        super(BaseRequestHandler, self).__init__(*args, **kwargs)
+        self.user = None
+        self.auth = None
 
     def options(self, *args, **kwargs):
         self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, PATCH, DELETE, HEAD')
 
-    def prepare(self): pass
+    async def prepare(self):
+        head_auth = self.request.headers.get("Authorization")
+        cookie_auth = self.get_cookie("authorization")
+        if head_auth:
+            auth = head_auth
+        elif cookie_auth:
+            from urllib.parse import unquote
+            auth = unquote(cookie_auth)
+        else:
+            auth = ''
+        res = token_class.decode_token(auth, interval=6)
+        if res['ret'] == 0:
+            self.user = res['data']
+            self.auth = True
 
-    def get(self, *args, **kwargs): pass
+    async def get(self, *args, **kwargs): pass
 
-    def post(self, *args, **kwargs): pass
+    async def post(self, *args, **kwargs): pass
 
-    def put(self, *args, **kwargs): pass
+    async def put(self, *args, **kwargs): pass
 
-    def patch(self, *args, **kwargs): pass
+    async def patch(self, *args, **kwargs): pass
 
-    def delete(self, *args, **kwargs): pass
+    async def delete(self, *args, **kwargs): pass
 
-    def head(self, *args, **kwargs): pass
+    async def head(self, *args, **kwargs): pass
 
     def on_finish(self) -> None:
-        pass
+        super(BaseRequestHandler, self).on_finish()
 
     def set_default_headers(self) -> None:
         """Override this to set HTTP headers at the beginning of the request.
@@ -51,3 +71,8 @@ class BaseRequestHandler(RequestHandler, ABC):
             'Access-Control-Allow-Headers', allow_headers)
         self.set_header('Access-Control-Max-Age', 1000)
 
+    def write_error(self, status_code, **kwargs):
+        
+        if status_code == 404:
+            return self.render('admin/error.html')
+        return super(BaseRequestHandler, self).write_error(status_code, **kwargs)

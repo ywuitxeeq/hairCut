@@ -27,7 +27,7 @@ class Application(tornado.web.Application):
         self._logger = logging_config(
             file_path=path.join(BASE_PATH, 'log', 'haircut'),
             logger_name='haircut.log',
-            stream_handler=True, set_logging_level='info')
+            stream_handler=True, set_logging_level='error')
 
     async def logger(self, msg, *args, method='info'):
         method = method.lower()

@@ -18,11 +18,11 @@ OPTIONS = {
 }
 
 SETTINGS = {
-    # "debug": True, #可以用以下四个方法分别设置
+    "debug": True, #可以用以下四个方法分别设置
     # 'debug': False,
-    'autoreload': False,  # 自动重启
-    'complited_template_cache': False,  # 取消缓存编译的模板
-    'static_hash_cache': False,  # 取消hash 缓存
+    # 'autoreload': False,  # 自动重启
+    # 'complited_template_cache': False,  # 取消缓存编译的模板
+    # 'static_hash_cache': False,  # 取消hash 缓存
     # 'server_traceback':False, # 取消提供跟踪信息 用得少
 
     'static_path': path.join(BASE_PATH, 'static'),
@@ -57,4 +57,16 @@ RECV_EMAIL_CONFIG = {
 }
 
 
-TOKEN_EXPIRE_TIME = 30
+TOKEN_EXPIRE_TIME = 60
+
+
+TABLE_NAME = {
+    "user": "haircut_user",
+    "carousel": "haircut_carousel",
+    "category": "haircut_category",
+    "order_info": "haircut_order_info",
+    "order_item": "haircut_order_item",
+    "pay_info": "haircut_pay_info",
+    "product_sku": "haircut_product_sku",
+    "product_spu": "haircut_product_spu",
+}

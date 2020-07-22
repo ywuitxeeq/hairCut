@@ -13,6 +13,11 @@ reg = re.compile(r'^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$
 
 
 def check_email(email):
+    """
+
+    :param email:
+    :return: true 验证成功
+    """
     if not re.match(reg, email):
         return False
     return True

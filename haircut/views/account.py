@@ -125,7 +125,8 @@ class Login(object):
             return obj.write({"status": 1006, "msg": "已经登陆"})
         username = obj.get_body_argument("username", None, strip=True)
         password = obj.get_body_argument("password", None, strip=True)
-        query_sql = "select username, phone, email, role from haircut_user where username=%s and password=%s limit 0, 1"
+        query_sql = "select username, phone, email, role, " \
+                    "stop from haircut_user where username=%s and password=%s limit 0, 1"
         if not all((username, password)):
             data = {
                 "status": 1001,
@@ -134,6 +135,8 @@ class Login(object):
             return obj.write(data)
         result = await TorMysqlHelp.query_one_execute(query_sql, [username, SecretPwd.encode(password)], to_dict=True)
         if result:
+            if result['stop'] == 1:
+                return obj.write({"status": 1006, "errorMsg": "帐号停用"})
             if result['role'] == 1:
                 href = obj.reverse_url('admin', 'index').lstrip('/')
             else:

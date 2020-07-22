@@ -32,3 +32,6 @@ const setCookie = (name, value, seconds) => {
     }
     document.cookie = name + "=" + escape(value) + expires + "; path=/"; //转码并赋值
 }
+
+
+

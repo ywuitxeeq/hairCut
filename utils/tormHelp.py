@@ -130,3 +130,27 @@ class TorMysqlHelp(object):
             await conn.commit()
         return cursor.lastrowid, cursor.rowcount
 
+    @staticmethod
+    @decorator
+    async def update_execute(sql, args=None, **kwargs):
+        """
+        返回最后一条记录的ID
+        :param sql:
+        :param args: ['a', 'b', 'c']
+        :param kwargs:
+        :return:
+        """
+        cursor = kwargs['__cursor__']
+        conn = kwargs['__conn__']
+        try:
+            res = await cursor.execute(sql, args)
+        except:
+            import traceback
+            logging.error(f"{sql} execute error {traceback.format_exc()}")
+            await conn.rollback()
+
+            return
+        else:
+            await conn.commit()
+
+        return res

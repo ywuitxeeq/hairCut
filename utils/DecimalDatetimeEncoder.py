@@ -14,9 +14,18 @@ import json
 
 class DecimalDatetimeEncoder(json.JSONEncoder):
 
+    FMT = '%Y-%m-%d %H:%M:%S'
+
     def default(self, obj):
         if isinstance(obj, decimal.Decimal):
             return str(obj)
         if isinstance(obj, datetime.datetime):
 
-            return obj.strftime('%Y-%m-%d %H:%M:%S')
+            return obj.strftime(self.FMT)
+
+
+def new_format_encoder(fmt="%Y-%m-%d %H:%M:%S"):
+    import copy
+    new_encoder = copy.deepcopy(DecimalDatetimeEncoder)
+    new_encoder.FMT = fmt
+    return new_encoder

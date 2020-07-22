@@ -35,7 +35,6 @@ def app_init():
 
 
 if __name__ == '__main__':
-
     app = app_init()
 
     http_server = HTTPServer(app)
