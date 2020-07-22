@@ -92,7 +92,7 @@ class AdminLoginHandler(BaseRequestHandler, ABC):
 
     async def get(self, *args, **kwargs):
         if not self.auth:
-            return self.finish(await html.get('login.html', self, render=True))
+            return await html.get('login.html', self, render=True)
         else:
             return self.redirect(self.reverse_url('admin', 'index'))
 
@@ -109,16 +109,19 @@ class AdminAsyncDataHandler(BaseRequestHandler, ABC):
 
     async def get(self, method, table, **kwargs):
         data = {"status": 1001, "msg": ""}
-        if hasattr(self, method):
-            fn = await getattr(self, method)(table, data)
-            return fn
+        if self.auth:
+
+            if hasattr(self, method):
+                fn = await getattr(self, method)(table, data)
+                return fn
         return self.write(data)
 
     async def post(self, method, table, **kwargs):
         data = {"status": 1001, "msg": ""}
-        if hasattr(self, method):
-            fn = await getattr(self, method)(table, data)
-            return fn
+        if self.auth:
+            if hasattr(self, method):
+                fn = await getattr(self, method)(table, data)
+                return fn
         return self.write(data)
 
     async def page(self, table, data):
