@@ -194,7 +194,7 @@ class AdminAsyncDataHandler(BaseRequestHandler, ABC):
             return_url=True,
             flag=True
         )
-
+        revers = False
         if cus_page.current_page > 3 and per:
             if up:
                 args.append(up)
@@ -202,22 +202,33 @@ class AdminAsyncDataHandler(BaseRequestHandler, ABC):
             elif lw:
                 args.append(lw)
                 sql += f" and id < %s order by id desc "
+                revers = True
                 # sql = f"select id, username, email, phone, address, stop from ({sql}) as b order by id asc"
             sql += f" limit 0, {cus_page.end_info - cus_page.start_info}"
 
         else:
             sql += f" limit {cus_page.start_info}, {cus_page.end_info - cus_page.start_info}"
+        print(sql % tuple(args))
         info = await TorMysqlHelp.query_all_execute(sql, args, to_dict=True)
+        pagers = cus_page.pager()
+        if revers:
+            lw = info[-1]['id'] if info else 1
+            up = info[0]['id'] if info else 1
+        else:
+            lw = info[0]['id'] if info else 1
+            up = info[-1]['id'] if info else 1
         if len(info) > 0:
             data = {
                 "data": info,
                 "msg": "ok",
                 "status": 1000,
-                "pager": list(map(lambda x: (x[0].replace(f'?page={x[1]}', ''), x[1]), cus_page.pager()[1:-1])),
-                "lw": info[0]['id'] if info else 1,
-                "up": info[-1]['id'] if info else 1,
+                "pager": list(map(lambda x: (x[0].replace(f'?page={x[1]}', ''), x[1]), pagers[1:-1])),
+                "pagerEnd": pagers[-1][0].replace("?page=", ''),
+                "lw": lw,
+                "up": up,
                 "current_page": cus_page.current_page
             }
+            del pagers
             return json.dumps(data, cls=new_format_encoder("%Y-%m-%d"))
         return {"status": 1001, 'msgError': "no data"}
 

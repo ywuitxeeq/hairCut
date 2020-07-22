@@ -260,7 +260,12 @@
                 p = val + '&per=' + $(this).attr('class')
 
             } else {
-                p = this.text ? this.text : 1;
+                if(this.text == '尾页'){
+                    p = $(this).attr('pagerEnd')
+                }else{
+                    p = this.text ? this.text : 1;
+                }
+
             }
             var page_url = "/haircut/admin/data/page/user?page=" + p + search;
             var up = $(this).attr('up');
@@ -294,9 +299,8 @@
                 } else {
                     htmlString = '<a class="prev" lw="' + res.data.lw + ' "valc=' + (current_page - 1) + '>&lt;&lt;</a>';
                 }
-
+                htmlString += '<a search="" class="num">首页</a>'
                 for (let j = 0; j < len; j++) {
-
 
                     if (parseInt(pager[j][1]) < current_page) {
                         htmlString += '<a search="' + pager[j][0] + '" class=\"num\" lw="' + res.data.lw + '">' + pager[j][1] + '</a>'
@@ -307,7 +311,7 @@
                     }
 
                 }
-
+                htmlString += '<a search="" class="num" pagerEnd="' + res.data.pagerEnd +'">尾页</a>'
                 if (current_page >= parseInt(pager[len - 1][1])) {
 
                     htmlString += '<a class="next" stop="true">&gt;&gt;</a>'

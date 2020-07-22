@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <script src="../static/js/axios@0.19.2.js"></script>
-    <script src="../static/js/instanceAxios.js"></script>
+<!--    <script src="../static/js/axios@0.19.2.js"></script>-->
+<!--    <script src="../static/js/instanceAxios.js"></script>-->
+     <script src="http://127.0.0.1/static/js/vue@2.5.16.js"></script>
+     <script src="http://127.0.0.1/static/js/axios@0.19.2.js"></script>
+     <script src="http://127.0.0.1/static/js/instanceAxios.js"></script>
 </head>
 <body>
-
+    <h1>ok</h1>
 </body>
 
 
@@ -140,6 +143,7 @@
     let hairCutApp = newAxios({
             timeout: 10000,
             baseURL: "http://192.168.32.1/",
+            withCredentials: true,  // 自动带cookie
             headers : {
                 common: {Authorization: "Authorization"},
                 // post: {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -147,18 +151,31 @@
             }
         })
 
-    hairCutApp.post("account/login", data, {
-       transformRequest: hairCutApp.transformRequest,
+    // hairCutApp.get("account/login",res=> {
+    //     console.log(res);
+    //     console.log(hairCutApp.instance.defaults.withCredentials);
+    //     if (res.data.status === 1000){
+    //
+    //          hairCutApp.instance.defaults.headers.common['Authorization'] = res.data.token;
+    //     }
+    //
+    // })
 
-    },res=> {
+    setTimeout(function () {
+         hairCutApp.get("account/login",{
+             params: {
+                 "async": true
+             }
+         }, res=> {
         console.log(res);
+        console.log(hairCutApp.instance.defaults.withCredentials);
         if (res.data.status === 1000){
 
              hairCutApp.instance.defaults.headers.common['Authorization'] = res.data.token;
         }
 
     })
-
+    }, 5000)
 
 
     // setTimeout(function () {
