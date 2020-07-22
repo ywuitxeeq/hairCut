@@ -16,7 +16,6 @@ MANIFEST
 secrets.cfg
 .mypy_cache/
 log
-orginSql.py
 build_requirements.py
 tableSet
 __pycache__
