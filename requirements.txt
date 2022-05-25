@@ -1,6 +1,6 @@
 aiofiles==0.5.0
 greenlet==0.4.16
-PyJWT==1.7.1
+PyJWT==2.4.0
 PyMySQL==0.9.3
 six==1.15.0
 tormysql==0.4.2
