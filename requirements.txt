@@ -4,5 +4,5 @@ PyJWT==1.7.1
 PyMySQL==0.9.3
 six==1.15.0
 tormysql==0.4.2
-tornado==6.0.4
+tornado==6.3.2
 yagmail==0.11.224
